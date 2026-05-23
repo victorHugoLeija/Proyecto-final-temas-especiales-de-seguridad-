@@ -16,16 +16,8 @@ app.use(helmet({
 }));
 app.use(cors());
 
-/*
-    Seguridad: limita el tamaño del JSON recibido.
-    Esto evita que alguien mande formularios demasiado grandes para saturar el servidor.
-*/
 app.use(express.json({ limit: '10kb' }));
 
-/*
-    Seguridad: limpia objetos para evitar inyección NoSQL.
-    operadores como $ne, $gt o claves con punto pueden alterar consultas.
-*/
 function sanitizeNoSQL(value) {
     if (Array.isArray(value)) {
         return value.map(sanitizeNoSQL);
@@ -35,10 +27,6 @@ function sanitizeNoSQL(value) {
         const cleanObject = {};
 
         for (const key in value) {
-            /*
-                Seguridad: se ignoran claves peligrosas.
-                Las claves que empiezan con $ o contienen pueden usarse para inyección NoSQL.
-            */
             if (key.startsWith('$') || key.includes('.')) {
                 continue;
             }
@@ -60,10 +48,6 @@ app.use((req, res, next) => {
 
 app.use(express.static(__dirname));
 
-/*
-    Seguridad: limita intentos de inicio de sesión.
-    Evita que alguien pruebe muchas contraseñas seguidas por fuerza bruta.
-*/
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
@@ -77,18 +61,10 @@ mongoose.connect(process.env.MONGO_URI)
     })
     .catch((error) => console.error('Error al conectar MongoDB:', error));
 
-/*
-    Seguridad: crea un salt aleatorio.
-    El salt hace que dos usuarios con la misma contraseña tengan hashes diferentes.
-*/
 function createSalt() {
     return crypto.randomBytes(16).toString('hex');
 }
 
-/*
-    Seguridad: convierte la contraseña en hash SHA-256.
-    No se guarda la contraseña real, solo el resultado del hash junto con su salt.
-*/
 function hashPassword(password, salt) {
     return crypto
         .createHash('sha256')
@@ -96,40 +72,22 @@ function hashPassword(password, salt) {
         .digest('hex');
 }
 
-/*
-    Seguridad: valida que el correo tenga formato correcto.
-   
-*/
 function isValidEmail(email) {
     return /^\S+@\S+\.\S+$/.test(email);
 }
 
-/*
-    Seguridad: exige contraseña mínima.
-    
-*/
 function isValidPassword(password) {
     return typeof password === 'string' && password.length >= 8;
 }
 
-/*
-    Seguridad: valida que los textos sean cadenas reales y tengan tamaño razonable.
-*/
 function isValidText(value, maxLength = 500) {
     return typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
 }
 
-/*
-    Seguridad: valida teléfono o WhatsApp.
-    
-*/
 function isValidPhone(phone) {
     return typeof phone === 'string' && /^\+?[0-9\s\-()]{7,20}$/.test(phone.trim());
 }
 
-/*
-    Seguridad: strict true evita guardar campos extra no definidos en el esquema.
-*/
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     passwordHash: { type: String, required: true },
@@ -138,10 +96,6 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }, { strict: true });
 
-/*
-    Seguridad: strict true también se aplica a contactos.
-    Solo se guardan los campos permitidos por este esquema.
-*/
 const contactSchema = new mongoose.Schema({
     userEmail: String,
     name: String,
@@ -171,10 +125,6 @@ const User = mongoose.model('User', userSchema);
 const Contact = mongoose.model('Contact', contactSchema);
 const Review = mongoose.model('Review', reviewSchema);
 
-/*
-    Admin: crea el usuario administrador automáticamente si no existe.
-    La contraseña del admin también se guarda con SHA-256 y salt en MongoDB.
-*/
 async function seedAdminUser() {
     const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || '';
@@ -216,17 +166,10 @@ async function seedAdminUser() {
     console.log(`Admin creado: ${adminEmail}`);
 }
 
-/*
-    Seguridad: crea un token JWT para mantener la sesión.
-*/
 function createToken(email, role = 'user') {
     return jwt.sign({ email, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 }
 
-/*
-    Seguridad: verifica que el usuario tenga un token válido.
-    Protege rutas como /api/contact para que solo usuarios con sesión puedan enviar solicitudes.
-*/
 function verifyToken(req, res, next) {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '');
@@ -239,10 +182,6 @@ function verifyToken(req, res, next) {
     }
 }
 
-/*
-    Admin: permite continuar solo si el token pertenece a un administrador.
-    Protege las rutas donde se consultan pedidos y solicitudes.
-*/
 function verifyAdmin(req, res, next) {
     if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Acceso solo para administrador.' });
@@ -255,10 +194,6 @@ app.post('/api/register', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        /*
-            Seguridad: valida tipos.
-            Evita que alguien mande objetos como { "$ne": null } en lugar de texto.
-        */
         if (typeof email !== 'string' || typeof password !== 'string') {
             return res.status(400).json({ message: 'Datos inválidos.' });
         }
@@ -282,9 +217,6 @@ app.post('/api/register', async (req, res) => {
         const salt = createSalt();
         const passwordHash = hashPassword(password, salt);
 
-        /*
-            Seguridad: se guarda el hash, no la contraseña real.
-        */
         await User.create({
             email: normalizedEmail,
             passwordHash,
@@ -308,9 +240,6 @@ app.post('/api/login', loginLimiter, async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        /*
-            Seguridad: valida tipos para prevenir inyección NoSQL.
-        */
         if (typeof email !== 'string' || typeof password !== 'string') {
             return res.status(400).json({ message: 'Correo o contraseña incorrectos.' });
         }
@@ -329,10 +258,6 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
         const passwordHash = hashPassword(password, user.salt);
 
-        /*
-            Seguridad: compara el hash calculado con el hash guardado.
-            La contraseña original nunca se compara ni se guarda directamente.
-        */
         if (passwordHash !== user.passwordHash) {
             return res.status(400).json({ message: 'Correo o contraseña incorrectos.' });
         }
@@ -355,10 +280,6 @@ app.post('/api/contact', verifyToken, async (req, res) => {
     try {
         const { name, email, phone, eventDate, eventTime, plan, message } = req.body;
 
-        /*
-            Seguridad: valida todos los datos recibidos desde el formulario.
-            Evita textos vacíos, objetos maliciosos o campos demasiado largos.
-        */
         if (
             !isValidText(name, 100) ||
             !isValidText(email, 100) ||
@@ -376,10 +297,6 @@ app.post('/api/contact', verifyToken, async (req, res) => {
             return res.status(400).json({ message: 'Correo no válido.' });
         }
 
-        /*
-            Seguridad: se guardan campos específicos, no req.body completo.
-            Así evitamos guardar datos inesperados enviados por un atacante.
-        */
         await Contact.create({
             userEmail: req.user.email,
             name: name.trim(),
@@ -440,10 +357,6 @@ app.post('/api/reviews', async (req, res) => {
     }
 });
 
-/*
-    Admin: devuelve las solicitudes guardadas.
-    Solo un usuario con role "admin" puede ver esta información.
-*/
 app.get('/api/admin/contacts', verifyToken, verifyAdmin, async (req, res) => {
     try {
         const contacts = await Contact.find({})
@@ -535,10 +448,6 @@ app.delete('/api/admin/reviews/:id', verifyToken, verifyAdmin, async (req, res) 
     }
 });
 
-/*
-    Admin: marca una solicitud como pendiente o completada.
-    Esto permite llevar control de pedidos ya atendidos sin eliminarlos.
-*/
 app.patch('/api/admin/contacts/:id/status', verifyToken, verifyAdmin, async (req, res) => {
     try {
         const { status } = req.body;
@@ -566,10 +475,6 @@ app.patch('/api/admin/contacts/:id/status', verifyToken, verifyAdmin, async (req
     }
 });
 
-/*
-    Admin: elimina una solicitud de la base de datos.
-    Solo el administrador puede borrar pedidos desde el panel.
-*/
 app.delete('/api/admin/contacts/:id', verifyToken, verifyAdmin, async (req, res) => {
     try {
         const deletedContact = await Contact.findByIdAndDelete(req.params.id).lean();

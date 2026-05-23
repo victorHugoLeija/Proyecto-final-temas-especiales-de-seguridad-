@@ -411,7 +411,6 @@ footer{
     padding: 1rem 0;
 }
 
-/* New pages and forms */
 .contract-form{max-width:900px;margin:1.2rem auto;background:#071a29;padding:1.2rem;border-radius:12px}
 .contract-grid{display:grid;grid-template-columns:1fr;gap:1rem}
 @media(min-width:900px){.contract-grid{grid-template-columns:1fr 320px}}

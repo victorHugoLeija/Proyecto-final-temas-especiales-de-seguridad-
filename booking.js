@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const extras = ['extra-speaker','extra-booth','extra-lights','extra-pyro','extra-co2','extra-haze','extra-lasers','extra-heads'];
         let sum = 0;
         extras.forEach(id=>{ const el = document.getElementById(id); if(el && el.checked){
-            // simple per-item pricing
             if(id==='extra-speaker') sum += 1200;
             else if(id==='extra-booth') sum += 1500;
             else if(id==='extra-lights') sum += 2000;
@@ -23,7 +22,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     function basePriceForPeople(n){
         if(n<=0) return 0;
-        if(n<=100) return 5500; // base price for 5 hrs
+        if(n<=100) return 5500;
         if(n<=200) return 5500 + 3000;
         if(n<=300) return 5500 + 5500;
         return 5500 + 7500;
@@ -35,7 +34,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const base = basePriceForPeople(people);
         const perExtra = extrasCost();
         const extraHours = Math.max(0, hours - 5);
-        const hoursCost = extraHours * 1200; // hora extra
+        const hoursCost = extraHours * 1200;
         const total = base + perExtra + hoursCost;
 
         document.getElementById('price-base').textContent = `$${base.toLocaleString()}`;
