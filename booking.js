@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', ()=>{
     const calculateBtn = document.getElementById('calculate');
-    const payBtn = document.getElementById('pay-mercado');
     const whatsappQuote = document.getElementById('whatsapp-quote');
     if(!calculateBtn) return;
 
@@ -40,10 +39,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
         document.getElementById('price-base').textContent = `$${base.toLocaleString()}`;
         document.getElementById('price-extras').textContent = `$${perExtra.toLocaleString()} (+ horas $${hoursCost.toLocaleString()})`;
         document.getElementById('price-total').textContent = `$${total.toLocaleString()}`;
-    });
-
-    payBtn.addEventListener('click', ()=>{
-        alert('Integración de Mercado Pago: este botón es un placeholder. Añade tus credenciales y endpoint en el código del servidor o configura Mercado Pago Checkout.');
     });
 
     whatsappQuote.addEventListener('click', (e)=>{
