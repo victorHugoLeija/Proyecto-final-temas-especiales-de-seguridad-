@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - DJ Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="contacto.html">CONTACTO</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="cabinas-hero">
+            <h1>Historias, consejos y ideas para tu fiesta</h1>
+            <p>Encuentra inspiración, recomendaciones de música y guías para sacar el máximo provecho a tu evento.</p>
+        </section>
+        <section id="blog-list" class="contract-form">
+            <article>
+                <h2>Cómo elegir la música perfecta para tu boda</h2>
+                <p>Descubre los mejores consejos para crear la lista de canciones ideal, respetar los tiempos del evento y mantener la pista llena.</p>
+            </article>
+            <article>
+                <h2>7 claves para una fiesta inolvidable</h2>
+                <p>Iluminación, sonido, interacción con el público y el momento adecuado para cada género musical.</p>
+            </article>
+            <article>
+                <h2>Planifica tu evento en CDMX con tranquilidad</h2>
+                <p>Todo lo que debes saber sobre espacios, logística y montajes para eventos al interior de la ciudad.</p>
+            </article>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>

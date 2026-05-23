@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabinas de DJ - Venta y Renta</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="contacto.html">CONTACTO</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="cabinas-hero">
+            <h1>Cabinas de DJ Profesionales</h1>
+            <p>Compra cabinas de alta calidad, diseñadas para profesionales. Modelos básicos hasta premium con accesorios incluidos.</p>
+        </section>
+        <section id="cabinas">
+            <h2>CABINAS EN VENTA</h2>
+            <div id="cabinas-grid" class="cabinas-grid"></div>
+        </section>
+        <section id="plan-detalle" class="plan-detalle hidden">
+            <h2>Detalles del producto</h2>
+            <div class="plan-card">
+                <h3 id="detalle-title"></h3>
+                <p class="precio" id="detalle-price"></p>
+                <p id="detalle-description"></p>
+                <p id="detalle-details"></p>
+                <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
+                    <button type="button" id="reserve-plan">Contactar para compra</button>
+                    <button type="button" id="close-detail">Volver</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+    <script src="auth.js"></script>
+    <script>
+        const cabinas = [
+            {
+                title: 'Cabina Básica Compacta',
+                price: '$4,500',
+                description: 'Cabina modular ideal para espacios pequeños. Ligera y fácil de transportar.',
+                details: 'Dimensiones: 80x60x100cm. Estructura aluminio, MDF de calidad. Incluye 2 soportes para turntables, espacio para mixer y accesorios. Perfecto para DJ iniciantes o eventos intimistas. Peso: 25kg.',
+                img: 'images/Cabina DJ Blanca Diamante Frente.jpeg',
+                alt: 'Cabina Básica'
+            },
+            {
+                title: 'Cabina Profesional Estándar',
+                price: '$7,500',
+                description: 'Cabina versátil de mediano tamaño con estructura reforzada. Ideal para eventos regulares.',
+                details: 'Dimensiones: 120x70x110cm. Estructura acero + MDF premium. Incluye 2 turntables, mixer integrado, 3 compartimentos de almacenamiento, ruedas de transporte. Acabado negro mate con detalles plateados. Peso: 45kg.',
+                img: 'images/Cabina DJ Negra Diamante frente.jpeg',
+                alt: 'Cabina Estándar'
+            },
+            {
+                title: 'Cabina XL Premium',
+                price: '$12,000',
+                description: 'Cabina de gran tamaño con acabado premium. Espacio amplio para múltiples equipos.',
+                details: 'Dimensiones: 150x85x120cm. Estructura acero reforzado, acabado espejo. Incluye 4 turntables, mixer profesional, iluminación LED integrada, refrigeración pasiva y ruedas giratoria de carga. Ideal para eventos grandes y estudios.',
+                img: 'images/Cabina DJ Diamante Plata tipo espejo frente.jpeg',
+                alt: 'Cabina Premium'
+            },
+            {
+                title: 'Cabina Modular Separable',
+                price: '$9,800',
+                description: 'Cabina desmontable. Fácil armado y transporte a cualquier ubicación.',
+                details: 'Dimensiones: 130x75x115cm (armada). Se separa en 3 módulos. Estructura aluminio liviano, paneles intercambiables. Incluye 2 turntables profesionales, cables blindados y maletín de transporte con ruedas. Peso total: 35kg.',
+                img: 'images/Cabina DJ Blanca Triangulos.jpeg',
+                alt: 'Cabina Modular'
+            },
+            {
+                title: 'Cabina Vintage Madera',
+                price: '$11,500',
+                description: 'Diseño retro con madera noble. Pieza decorativa y funcional para eventos elegantes.',
+                details: 'Dimensiones: 125x80x115cm. Estructura madera de cerezo, acabado natural con barniz protector. Incluye 2 turntables vintage, mezclador analógico manual, detalles cromados. Perfecta para bodas, cócteles y eventos sofisticados. Peso: 55kg.',
+                img: 'images/Cabina DJ Negra Rayado.jpeg',
+                alt: 'Cabina Vintage'
+            },
+            {
+                title: 'Cabina Full Control Digital',
+                price: '$15,000',
+                description: 'Cabina de última generación con todo integrado. Conectividad Bluetooth y USB.',
+                details: 'Dimensiones: 140x80x120cm. Estructura acero con pantalla táctil integrada. Incluye 2 turntables digitales, mixer táctil, sistema de iluminación RGB personalizable, entrada Bluetooth/USB/AUX, ecualizador de 7 bandas. Ideal para eventos corporativos y boliches.',
+                img: 'images/Cabina DJ Blanca 4 diamantes frente.jpeg',
+                alt: 'Cabina Digital'
+            }
+        ];
+
+        const container = document.getElementById('cabinas-grid');
+
+        function renderCabinas() {
+            container.innerHTML = cabinas.map(cabina => `
+                <div class="cabinas-card">
+                    <img src="${cabina.img}" alt="${cabina.alt}">
+                    <h3>${cabina.title}</h3>
+                    <p class="precio">${cabina.price}</p>
+                    <p class="descripcion">${cabina.description}</p>
+                    <button type="button" onclick="showDetails('${cabina.title}', '${cabina.price}', '${cabina.description}', '${cabina.details}')">Ver detalles</button>
+                </div>
+            `).join('');
+        }
+
+        function showDetails(title, price, description, details) {
+            document.getElementById('detalle-title').textContent = title;
+            document.getElementById('detalle-price').textContent = price;
+            document.getElementById('detalle-description').textContent = description;
+            document.getElementById('detalle-details').textContent = details;
+            const detailSection = document.getElementById('plan-detalle');
+            detailSection.classList.remove('hidden');
+            detailSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function reservePlan(title) {
+            const url = 'contacto.html?plan=' + encodeURIComponent(title);
+            window.location.href = url;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+            renderCabinas();
+            document.getElementById('close-detail').addEventListener('click', () => {
+                document.getElementById('plan-detalle').classList.add('hidden');
+            });
+            document.getElementById('reserve-plan').addEventListener('click', () => {
+                const title = document.getElementById('detalle-title').textContent || '';
+                reservePlan(title);
+            });
+        });
+    </script>
+</body>
+</html>

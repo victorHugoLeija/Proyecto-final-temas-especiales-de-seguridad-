@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | DJ Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="contacto.html">CONTACTO</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="admin-hero">
+            <h1>Panel de administración</h1>
+            <p>Pedidos actuales y solicitudes de fechas recibidas desde el sitio.</p>
+        </section>
+
+        <section id="admin-panel">
+            <div class="admin-header">
+                <div>
+                    <h2>Solicitudes recibidas</h2>
+                    <p id="admin-summary">Cargando información...</p>
+                </div>
+                <button type="button" id="refresh-admin">Actualizar</button>
+            </div>
+
+            <div id="admin-message" class="form-message"></div>
+            <div id="admin-list" class="admin-list"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        function showAdminMessage(text, type = 'error') {
+            const messageBox = document.getElementById('admin-message');
+            messageBox.textContent = text;
+            messageBox.className = `form-message ${type}`;
+        }
+
+        function formatDate(value) {
+            if (!value) return 'Sin fecha';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleString('es-MX');
+        }
+
+        function getWhatsAppUrl(phone) {
+            const digits = String(phone || '').replace(/\D/g, '');
+            return digits ? `https://wa.me/${digits}` : '';
+        }
+
+        function renderContacts(contacts) {
+            const list = document.getElementById('admin-list');
+            const summary = document.getElementById('admin-summary');
+
+            const pendingCount = contacts.filter((contact) => (contact.status || 'pending') !== 'completed').length;
+            const completedCount = contacts.length - pendingCount;
+
+            summary.textContent = `${contacts.length} solicitud(es): ${pendingCount} pendiente(s), ${completedCount} completada(s).`;
+
+            if (!contacts.length) {
+                list.innerHTML = '<p class="admin-empty">Todavía no hay solicitudes registradas.</p>';
+                return;
+            }
+
+            list.innerHTML = contacts.map((contact) => {
+                const status = contact.status || 'pending';
+                const isCompleted = status === 'completed';
+                const whatsappUrl = getWhatsAppUrl(contact.phone);
+                return `
+                <article class="admin-request ${isCompleted ? 'admin-request-completed' : ''}">
+                    <div class="admin-request-top">
+                        <div>
+                            <h3>${contact.name || 'Sin nombre'}</h3>
+                            <p>${contact.email || 'Sin correo'}</p>
+                        </div>
+                        <div class="admin-request-meta">
+                            <span class="admin-status ${isCompleted ? 'completed' : 'pending'}">${isCompleted ? 'Completado' : 'Pendiente'}</span>
+                            <span>${formatDate(contact.createdAt)}</span>
+                        </div>
+                    </div>
+                    <div class="admin-request-grid">
+                        <p><strong>Fecha del evento:</strong> ${contact.eventDate || 'Sin fecha'}</p>
+                        <p><strong>Hora:</strong> ${contact.eventTime || 'Sin hora'}</p>
+                        <p><strong>Plan o cabina:</strong> ${contact.plan || 'No especificado'}</p>
+                        <p><strong>WhatsApp:</strong> ${contact.phone ? `<a class="admin-whatsapp-link" href="${whatsappUrl}" target="_blank" rel="noopener">${contact.phone}</a>` : 'Sin teléfono'}</p>
+                        <p><strong>Usuario:</strong> ${contact.userEmail || 'Sin usuario'}</p>
+                        ${contact.completedAt ? `<p><strong>Completado:</strong> ${formatDate(contact.completedAt)}</p>` : ''}
+                    </div>
+                    <p class="admin-request-message">${contact.message || 'Sin mensaje'}</p>
+                    <div class="admin-actions">
+                        <button type="button" class="admin-complete-button" data-id="${contact._id}" data-status="${isCompleted ? 'pending' : 'completed'}">
+                            ${isCompleted ? 'Reabrir' : 'Marcar completado'}
+                        </button>
+                        <button type="button" class="admin-delete-button" data-id="${contact._id}">
+                            Eliminar
+                        </button>
+                    </div>
+                </article>
+            `;
+            }).join('');
+        }
+
+        async function updateContactStatus(id, status) {
+            const session = getSession();
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/contacts/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showAdminMessage(data.message || 'No se pudo actualizar la solicitud.', 'error');
+                    return;
+                }
+
+                await loadContacts();
+            } catch (error) {
+                showAdminMessage('No se pudo conectar con el servidor.', 'error');
+            }
+        }
+
+        async function deleteContact(id) {
+            const confirmed = confirm('¿Seguro que quieres eliminar esta solicitud? Esta acción no se puede deshacer.');
+
+            if (!confirmed) return;
+
+            const session = getSession();
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/contacts/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${session.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showAdminMessage(data.message || 'No se pudo eliminar la solicitud.', 'error');
+                    return;
+                }
+
+                await loadContacts();
+            } catch (error) {
+                showAdminMessage('No se pudo conectar con el servidor.', 'error');
+            }
+        }
+
+        async function loadContacts() {
+            const session = getSession();
+
+            if (!session || !session.token || session.role !== 'admin') {
+                window.location.href = 'login.html?redirect=admin.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL + '/api/admin/contacts', {
+                    headers: {
+                        'Authorization': `Bearer ${session.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showAdminMessage(data.message || 'No se pudieron cargar las solicitudes.', 'error');
+                    return;
+                }
+
+                showAdminMessage('', 'form-message');
+                renderContacts(data.contacts || []);
+            } catch (error) {
+                showAdminMessage('No se pudo conectar con el servidor.', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+            document.getElementById('refresh-admin').addEventListener('click', loadContacts);
+            document.getElementById('admin-list').addEventListener('click', (event) => {
+                const completeButton = event.target.closest('.admin-complete-button');
+                const deleteButton = event.target.closest('.admin-delete-button');
+
+                if (completeButton) {
+                    updateContactStatus(completeButton.dataset.id, completeButton.dataset.status);
+                    return;
+                }
+
+                if (deleteButton) {
+                    deleteContact(deleteButton.dataset.id);
+                }
+            });
+            loadContacts();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso | DJ Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="contacto.html">CONTACTO</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="login-hero">
+            <h1>Reserva tu fecha con un solo clic</h1>
+            <p>Accede o crea tu cuenta para consultar disponibilidad y asegurar tu evento con un DJ profesional.</p>
+            <p class="hero-note">Desde aquí puedes ir a Inicio, Cabinas, Blog o Reseñas usando el menú superior.</p>
+        </section>
+
+        <section id="contacto">
+            <h2>Accede a tu evento</h2>
+
+            <div id="form-message" class="form-message"></div>
+
+            <form id="auth-form">
+                <input type="email" name="email" placeholder="Correo electrónico" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
+                <input type="password" name="confirm_password" placeholder="Repite tu contraseña" class="hidden">
+                <button type="submit" id="submit-button">Iniciar sesión</button>
+            </form>
+
+            <div class="auth-switch">
+                <span id="auth-toggle-text">¿Aún no te registras?</span>
+                <button type="button" id="toggle-auth-mode">Crear cuenta</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        function showMessage(text, type = 'success') {
+            const messageBox = document.getElementById('form-message');
+            messageBox.textContent = text;
+            messageBox.className = `form-message ${type}`;
+
+            setTimeout(() => {
+                messageBox.textContent = '';
+                messageBox.className = 'form-message';
+            }, 4000);
+        }
+
+        function setInputMode(registerMode) {
+            const confirmField = document.querySelector('input[name="confirm_password"]');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const submitButton = document.getElementById('submit-button');
+            const toggleButton = document.getElementById('toggle-auth-mode');
+
+            if (registerMode) {
+                confirmField.classList.remove('hidden');
+                submitButton.textContent = 'Crear cuenta';
+                toggleText.textContent = '¿Ya tienes cuenta?';
+                toggleButton.textContent = 'Iniciar sesión';
+            } else {
+                confirmField.classList.add('hidden');
+                submitButton.textContent = 'Iniciar sesión';
+                toggleText.textContent = '¿Aún no te registras?';
+                toggleButton.textContent = 'Crear cuenta';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get('redirect') || 'contacto.html';
+
+            let registerMode = false;
+
+            const session = getSession();
+
+            if (session && session.email && session.token) {
+                showMessage(`Ya estás conectado como ${session.email}. Redirigiendo...`, 'success');
+                setTimeout(() => window.location.href = redirect, 1400);
+                return;
+            }
+
+            setInputMode(registerMode);
+
+            const authForm = document.getElementById('auth-form');
+
+            authForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(authForm);
+
+                const email = formData.get('email').toString().trim().toLowerCase();
+                const password = formData.get('password').toString().trim();
+                const confirmPassword = formData.get('confirm_password').toString().trim();
+
+                if (!email || !password) {
+                    showMessage('Completa los campos obligatorios.', 'error');
+                    return;
+                }
+
+                if (registerMode && password !== confirmPassword) {
+                    showMessage('Las contraseñas no coinciden.', 'error');
+                    return;
+                }
+
+                const endpoint = registerMode ? '/api/register' : '/api/login';
+
+                try {
+                    const response = await fetch(API_URL + endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email,
+                            password
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        showMessage(data.message || 'Ocurrió un error.', 'error');
+                        return;
+                    }
+
+                    setSession(data.email, data.token, data.role);
+
+                    showMessage(
+                        registerMode
+                            ? 'Cuenta creada exitosamente. Redirigiendo...'
+                            : 'Inicio de sesión exitoso. Redirigiendo...',
+                        'success'
+                    );
+
+                    setTimeout(() => window.location.href = redirect, 1400);
+                } catch (error) {
+                    showMessage('No se pudo conectar con el servidor.', 'error');
+                }
+            });
+
+            document.getElementById('toggle-auth-mode').addEventListener('click', () => {
+                registerMode = !registerMode;
+                setInputMode(registerMode);
+            });
+        });
+    </script>
+</body>
+</html>

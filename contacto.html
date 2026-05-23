@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto | DJ Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="contacto.html">CONTACTO</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="contacto-hero">
+            <h1>Transforma tu evento en una experiencia inolvidable</h1>
+            <p>Cuéntanos tu idea y recibe una propuesta creativa y exclusiva en menos de 24 horas.</p>
+        </section>
+
+        <section id="contacto">
+            <h2>Solicita tu cotización</h2>
+
+            <div id="form-message" class="form-message"></div>
+            <p id="selected-plan-note" class="form-message" style="display:none;"></p>
+
+            <form id="contact-form">
+                <input type="hidden" name="plan" id="selected-plan" value="">
+
+                <input type="text" name="name" placeholder="Nombre completo" required>
+                <input type="email" name="email" placeholder="Correo electrónico" required>
+                <input type="tel" name="phone" placeholder="Teléfono o WhatsApp" required>
+                <input type="date" name="event_date" required>
+                <input type="time" name="event_time" required>
+
+                <textarea name="message" placeholder="Describe tu evento, estilo deseado y cualquier detalle especial" required></textarea>
+
+                <button type="submit">Enviar solicitud</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        function showMessage(text, type = 'success') {
+            const messageBox = document.getElementById('form-message');
+            messageBox.textContent = text;
+            messageBox.className = `form-message ${type}`;
+
+            setTimeout(() => {
+                messageBox.textContent = '';
+                messageBox.className = 'form-message';
+            }, 4000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            const session = getSession();
+
+            if (!session || !session.email || !session.token) {
+                const redirect = 'contacto.html' + window.location.search;
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(redirect);
+                return;
+            }
+
+            const form = document.getElementById('contact-form');
+
+            const params = new URLSearchParams(window.location.search);
+            const plan = params.get('plan');
+
+            if (plan) {
+                document.getElementById('selected-plan').value = plan;
+
+                const note = document.getElementById('selected-plan-note');
+                note.textContent = `Reservando: ${plan}`;
+                note.className = 'form-message success';
+                note.style.display = 'block';
+
+                const textarea = form.querySelector('textarea[name="message"]');
+
+                if (textarea && textarea.value.trim() === '') {
+                    textarea.value = `Hola, me interesa el plan: ${plan}. Quisiera conocer disponibilidad y precio final.`;
+                }
+            }
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+
+                const entry = {
+                    name: formData.get('name').toString().trim(),
+                    email: formData.get('email').toString().trim(),
+                    phone: formData.get('phone').toString().trim(),
+                    eventDate: formData.get('event_date').toString().trim(),
+                    eventTime: formData.get('event_time').toString().trim(),
+                    message: formData.get('message').toString().trim(),
+                    plan: formData.get('plan').toString().trim()
+                };
+
+                if (!entry.name || !entry.email || !entry.phone || !entry.eventDate || !entry.eventTime || !entry.message) {
+                    showMessage('Por favor completa todos los campos antes de enviar.', 'error');
+                    return;
+                }
+
+                if (!/^\+?[0-9\s\-()]{7,20}$/.test(entry.phone)) {
+                    showMessage('Escribe un teléfono válido para poder contactarte por WhatsApp.', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(API_URL + '/api/contact', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.token}`
+                        },
+                        body: JSON.stringify(entry)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        showMessage(data.message || 'No se pudo enviar la solicitud.', 'error');
+                        return;
+                    }
+
+                    showMessage(`¡Gracias ${entry.name}! Recibimos tu solicitud. Te contactaremos pronto.`, 'success');
+                    form.reset();
+                } catch (error) {
+                    showMessage('No se pudo conectar con el servidor.', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

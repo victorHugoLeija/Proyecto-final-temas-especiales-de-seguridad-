@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reseñas - DJ Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="contacto.html">CONTACTO</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="cabinas-hero">
+            <h1>Reseñas reales de nuestros clientes</h1>
+            <p>Lee experiencias de parejas, empresas y familias que eligieron nuestra producción musical.</p>
+        </section>
+        <section id="review-list" class="contract-form">
+            <article>
+                <h2>"Excelente ambiente y muy buena comunicación"</h2>
+                <p>"DJ Gustavo hizo nuestra boda muy especial. La música, las luces y la coordinación fueron perfectas."</p>
+            </article>
+            <article>
+                <h2>"Todo super profesional, desde el primer contacto"</h2>
+                <p>"Contratamos el paquete completo para una fiesta de 120 personas y todos quedaron encantados."</p>
+            </article>
+            <article>
+                <h2>"Recomendado para eventos en CDMX"</h2>
+                <p>"Buen precio, buena producción y muy amable el equipo. Se adaptaron al espacio y la energía fue increíble."</p>
+            </article>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>

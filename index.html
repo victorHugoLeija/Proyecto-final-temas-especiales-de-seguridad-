@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ Gustavo | Eventos con estilo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="contacto.html">CONTACTO</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="hero">
+            <h1>Convierte tu evento en una noche inolvidable</h1>
+            <p>DJ profesional, producción completa y ambiente musical diseñado para cautivar a tus invitados.</p>
+            <div class="hero-ctas">
+                <a class="cta-button" href="cabinas.html">Ver cabinas</a>
+                <a class="cta-outline" href="contratar.html">Contratar ahora</a>
+                <a class="cta-whatsapp" href="https://wa.me/5212345678900" target="_blank">WhatsApp</a>
+                <a class="cta-social" href="https://instagram.com/tuperfil" target="_blank">Instagram</a>
+            </div>
+            <div class="lead-card">
+                <h3>¿Te interesa? Déjanos tus datos y te contactamos</h3>
+                <form id="lead-form">
+                    <input type="text" id="lead-name" name="name" placeholder="Nombre completo" required>
+                    <input type="tel" id="lead-phone" name="phone" placeholder="Teléfono" required>
+                    <input type="email" id="lead-email" name="email" placeholder="Correo electrónico" required>
+                    <select id="lead-event" name="event_type">
+                        <option value="">¿Qué evento es?</option>
+                        <option value="cumpleanos">Cumpleaños</option>
+                        <option value="boda">Boda</option>
+                        <option value="corporativo">Corporativo</option>
+                        <option value="despedida">Despedida</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                    <div class="lead-row">
+                        <select id="lead-space" name="space">
+                            <option value="abierto">Espacio abierto</option>
+                            <option value="cerrado">Espacio cerrado</option>
+                        </select>
+                        <input type="number" id="lead-people" name="people" placeholder="¿Cuántas personas?" min="1">
+                    </div>
+                    <button type="submit">Solicitar contacto</button>
+                    <div id="lead-message" class="form-message"></div>
+                </form>
+            </div>
+        </section>
+
+        <section id="services-summary">
+            <h2>Cabinas destacadas</h2>
+            <p>Producción, DJ, iluminación, sonido, efectos especiales y montaje. Precios claros para CDMX y cotización para el interior.</p>
+            <div class="services-grid">
+                <a class="service-card" href="cabinas.html">
+                    <h3>Paquetes para fiestas</h3>
+                    <p>Desde reuniones íntimas hasta grandes eventos.</p>
+                </a>
+                <a class="service-card" href="productos.html">
+                    <h3>Equipo y productos</h3>
+                    <p>Cabinas, bocinas, luces y accesorios con opción de compra o renta.</p>
+                </a>
+                <a class="service-card" href="contratar.html">
+                    <h3>Contratación rápida</h3>
+                    <p>Formulario de contratación con cálculo automático y 3 formas de pago.</p>
+                </a>
+                <a class="service-card" href="#faqs">
+                    <h3>Preguntas frecuentes</h3>
+                    <p>Respuestas sobre montajes, espacio, horarios y precios.</p>
+                </a>
+            </div>
+        </section>
+
+        <section id="faqs">
+            <h2>Preguntas frecuentes</h2>
+            <details>
+                <summary>¿Qué información necesitan para cotizar?</summary>
+                <p>Nombre, teléfono, correo, tipo de evento, número aproximado de personas, y si es interior o exterior.</p>
+            </details>
+            <details>
+                <summary>¿En qué zonas trabajan?</summary>
+                <p>CDMX con precio estándar. Interior de la República: cotización personalizada (botón de WhatsApp).</p>
+            </details>
+            <details>
+                <summary>¿Cuánto es el anticipo?</summary>
+                <p>Anticipo sugerido $1,500 para reservar fecha; el resto puede pagarse por transferencia o Mercado Pago.</p>
+            </details>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+    <script src="auth.js"></script>
+    <script src="lead.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>
+

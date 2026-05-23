@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contratar - DJ Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="productos.html">PRODUCTOS</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="contacto-hero">
+            <h1>Formulario de contratación</h1>
+            <p>Completa los datos para recibir una cotización inmediata y opciones de pago.</p>
+        </section>
+
+        <section id="contratar">
+            <div class="contract-form">
+                <form id="contract-form" class="contract-grid">
+                    <div>
+                        <input type="text" id="c-name" name="name" placeholder="Nombre completo" required>
+                        <input type="tel" id="c-phone" name="phone" placeholder="Teléfono" required>
+                        <input type="email" id="c-email" name="email" placeholder="Correo electrónico" required>
+                        <input type="date" id="c-date" name="date" placeholder="Fecha del evento" required>
+                        <select id="c-type" name="event_type" required>
+                            <option value="">Tipo de evento</option>
+                            <option value="cumpleanos">Cumpleaños</option>
+                            <option value="boda">Boda</option>
+                            <option value="corporativo">Corporativo</option>
+                            <option value="despedida">Despedida</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                        <div style="display:flex;gap:0.6rem;margin-top:0.2rem;">
+                            <label style="flex:1"><input type="radio" name="space" value="interior" checked> Interior</label>
+                            <label style="flex:1"><input type="radio" name="space" value="exterior"> Exterior</label>
+                        </div>
+                        <input type="number" id="c-hours" name="hours" placeholder="Cantidad de horas" min="1" value="5" required>
+                        <input type="number" id="c-people" name="people" placeholder="Número de personas" min="1" required>
+                        <input type="text" id="c-address" name="address" placeholder="Dirección del evento" required>
+                    </div>
+                    <aside style="padding-left:1rem;">
+                        <h3>Extras y resumen</h3>
+                        <label><input type="checkbox" id="extra-speaker"> Bocina</label><br>
+                        <label><input type="checkbox" id="extra-booth"> Cabina</label><br>
+                        <label><input type="checkbox" id="extra-lights"> Luces</label><br>
+                        <label><input type="checkbox" id="extra-pyro"> Pirotecnia</label><br>
+                        <label><input type="checkbox" id="extra-co2"> Máquinas CO2</label><br>
+                        <label><input type="checkbox" id="extra-haze"> Máquina de humo</label><br>
+                        <label><input type="checkbox" id="extra-lasers"> Lasers</label><br>
+                        <label><input type="checkbox" id="extra-heads"> Cabezas robóticas</label>
+
+                        <div style="margin-top:1rem;">
+                            <p>Precio base sugerido: <strong id="price-base">--</strong></p>
+                            <p>Extras: <strong id="price-extras">--</strong></p>
+                            <p>Total estimado: <strong id="price-total">--</strong></p>
+                            <p>Anticipo (recomendado): <strong>$1,500</strong></p>
+                            <button type="button" id="calculate">Calcular precio</button>
+                            <button type="button" id="pay-mercado">Pagar con Mercado Pago</button>
+                            <a id="whatsapp-quote" class="cta-whatsapp" href="#" style="display:inline-block;margin-top:0.6rem;">Cotizar interior de República</a>
+                        </div>
+                    </aside>
+                </form>
+                <div id="contract-message" class="form-message"></div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+    <script src="auth.js"></script>
+    <script src="booking.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { document.getElementById('year').textContent = new Date().getFullYear(); });
+    </script>
+</body>
+</html>

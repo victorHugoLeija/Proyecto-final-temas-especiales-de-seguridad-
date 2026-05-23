@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - DJ Gustavo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">DJ Gustavo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">INICIO</a></li>
+                <li><a href="cabinas.html">CABINAS</a></li>
+                <li><a href="blog.html">BLOG</a></li>
+                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="productos.html">PRODUCTOS</a></li>
+                <li id="nav-auth"></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="products-hero">
+            <h1>Catálogo de productos y equipos</h1>
+            <p>Compra o renta cabinas, bocinas, mesas y accesorios. Entrega en CDMX y bodegas en Querétaro y Guadalajara.</p>
+        </section>
+
+        <section id="catalogo">
+            <div class="services-grid" id="products-grid"></div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
+    </footer>
+    <script>
+        const products = [
+            {name: 'Cabina DJ Profesional', price: '$7,500', desc: 'Cabina modular, ligera y resistente.', measures: '120x60x100 cm', img: 'images/Cabina DJ Blanca Diamante Frente.jpeg', amazon: ''},
+            {name: 'Bocina PA 12"', price: '$2,500', desc: 'Bocina potente para eventos medianos.', measures: '40x40x70 cm', img: 'images/Cabina DJ Negra Diamante frente.jpeg', amazon: ''},
+            {name: 'Set de Luces LED', price: '$1,200', desc: 'Iluminación dinámica LED con DMX.', measures: 'varios', img: 'images/Cabina DJ Blanca Triangulos.jpeg', amazon: ''},
+        ];
+
+        function renderProducts(){
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <img src="${p.img}" alt="${p.name}">
+                    <h3>${p.name}</h3>
+                    <p class="precio">${p.price}</p>
+                    <p>${p.desc}</p>
+                    <p class="tag">Medidas: ${p.measures}</p>
+                    <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        ${p.amazon?`<a class="cta-outline" href="${p.amazon}" target="_blank">Comprar en Amazon</a>`:`<a class="cta-outline" href="contratar.html">Cotizar / Renta</a>`}
+                    </div>
+                </div>
+            `).join('');
+        }
+        document.addEventListener('DOMContentLoaded', ()=>{ renderProducts(); document.getElementById('year').textContent = new Date().getFullYear(); });
+    </script>
+</body>
+</html>
