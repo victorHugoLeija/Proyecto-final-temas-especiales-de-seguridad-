@@ -14,7 +14,7 @@
                 <li><a href="index.html">INICIO</a></li>
                 <li><a href="cabinas.html">CABINAS</a></li>
                 <li><a href="blog.html">BLOG</a></li>
-                <li><a href="resenas.html">RESEÑAS</a></li>
+                <li><a href="resenas.html">RESENAS</a></li>
                 <li><a href="contacto.html">CONTACTO</a></li>
                 <li id="nav-auth"></li>
             </ul>
@@ -23,21 +23,34 @@
 
     <main>
         <section id="admin-hero">
-            <h1>Panel de administración</h1>
-            <p>Pedidos actuales y solicitudes de fechas recibidas desde el sitio.</p>
+            <h1>Panel de administracion</h1>
+            <p>Pedidos actuales, solicitudes de fechas y resenas pendientes del sitio.</p>
         </section>
 
         <section id="admin-panel">
             <div class="admin-header">
                 <div>
                     <h2>Solicitudes recibidas</h2>
-                    <p id="admin-summary">Cargando información...</p>
+                    <p id="admin-summary">Cargando informacion...</p>
                 </div>
                 <button type="button" id="refresh-admin">Actualizar</button>
             </div>
 
             <div id="admin-message" class="form-message"></div>
             <div id="admin-list" class="admin-list"></div>
+        </section>
+
+        <section id="admin-reviews-panel">
+            <div class="admin-header">
+                <div>
+                    <h2>Resenas de clientes</h2>
+                    <p id="admin-reviews-summary">Cargando resenas...</p>
+                </div>
+                <button type="button" id="refresh-reviews">Actualizar resenas</button>
+            </div>
+
+            <div id="admin-reviews-message" class="form-message"></div>
+            <div id="admin-reviews-list" class="admin-list"></div>
         </section>
     </main>
 
@@ -55,6 +68,12 @@
             messageBox.className = `form-message ${type}`;
         }
 
+        function showReviewAdminMessage(text, type = 'error') {
+            const messageBox = document.getElementById('admin-reviews-message');
+            messageBox.textContent = text;
+            messageBox.className = `form-message ${type}`;
+        }
+
         function formatDate(value) {
             if (!value) return 'Sin fecha';
             const date = new Date(value);
@@ -62,9 +81,23 @@
             return date.toLocaleString('es-MX');
         }
 
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function getWhatsAppUrl(phone) {
             const digits = String(phone || '').replace(/\D/g, '');
             return digits ? `https://wa.me/${digits}` : '';
+        }
+
+        function renderStars(rating) {
+            const value = Math.max(1, Math.min(5, Number(rating) || 5));
+            return '&#9733;'.repeat(value) + '&#9734;'.repeat(5 - value);
         }
 
         function renderContacts(contacts) {
@@ -77,7 +110,7 @@
             summary.textContent = `${contacts.length} solicitud(es): ${pendingCount} pendiente(s), ${completedCount} completada(s).`;
 
             if (!contacts.length) {
-                list.innerHTML = '<p class="admin-empty">Todavía no hay solicitudes registradas.</p>';
+                list.innerHTML = '<p class="admin-empty">Todavia no hay solicitudes registradas.</p>';
                 return;
             }
 
@@ -89,8 +122,8 @@
                 <article class="admin-request ${isCompleted ? 'admin-request-completed' : ''}">
                     <div class="admin-request-top">
                         <div>
-                            <h3>${contact.name || 'Sin nombre'}</h3>
-                            <p>${contact.email || 'Sin correo'}</p>
+                            <h3>${escapeHtml(contact.name || 'Sin nombre')}</h3>
+                            <p>${escapeHtml(contact.email || 'Sin correo')}</p>
                         </div>
                         <div class="admin-request-meta">
                             <span class="admin-status ${isCompleted ? 'completed' : 'pending'}">${isCompleted ? 'Completado' : 'Pendiente'}</span>
@@ -98,14 +131,14 @@
                         </div>
                     </div>
                     <div class="admin-request-grid">
-                        <p><strong>Fecha del evento:</strong> ${contact.eventDate || 'Sin fecha'}</p>
-                        <p><strong>Hora:</strong> ${contact.eventTime || 'Sin hora'}</p>
-                        <p><strong>Plan o cabina:</strong> ${contact.plan || 'No especificado'}</p>
-                        <p><strong>WhatsApp:</strong> ${contact.phone ? `<a class="admin-whatsapp-link" href="${whatsappUrl}" target="_blank" rel="noopener">${contact.phone}</a>` : 'Sin teléfono'}</p>
-                        <p><strong>Usuario:</strong> ${contact.userEmail || 'Sin usuario'}</p>
+                        <p><strong>Fecha del evento:</strong> ${escapeHtml(contact.eventDate || 'Sin fecha')}</p>
+                        <p><strong>Hora:</strong> ${escapeHtml(contact.eventTime || 'Sin hora')}</p>
+                        <p><strong>Plan o cabina:</strong> ${escapeHtml(contact.plan || 'No especificado')}</p>
+                        <p><strong>WhatsApp:</strong> ${contact.phone ? `<a class="admin-whatsapp-link" href="${whatsappUrl}" target="_blank" rel="noopener">${escapeHtml(contact.phone)}</a>` : 'Sin telefono'}</p>
+                        <p><strong>Usuario:</strong> ${escapeHtml(contact.userEmail || 'Sin usuario')}</p>
                         ${contact.completedAt ? `<p><strong>Completado:</strong> ${formatDate(contact.completedAt)}</p>` : ''}
                     </div>
-                    <p class="admin-request-message">${contact.message || 'Sin mensaje'}</p>
+                    <p class="admin-request-message">${escapeHtml(contact.message || 'Sin mensaje')}</p>
                     <div class="admin-actions">
                         <button type="button" class="admin-complete-button" data-id="${contact._id}" data-status="${isCompleted ? 'pending' : 'completed'}">
                             ${isCompleted ? 'Reabrir' : 'Marcar completado'}
@@ -113,6 +146,52 @@
                         <button type="button" class="admin-delete-button" data-id="${contact._id}">
                             Eliminar
                         </button>
+                    </div>
+                </article>
+            `;
+            }).join('');
+        }
+
+        function renderAdminReviews(reviews) {
+            const list = document.getElementById('admin-reviews-list');
+            const summary = document.getElementById('admin-reviews-summary');
+            const pendingCount = reviews.filter((review) => review.status === 'pending').length;
+            const approvedCount = reviews.filter((review) => review.status === 'approved').length;
+            const rejectedCount = reviews.filter((review) => review.status === 'rejected').length;
+
+            summary.textContent = `${reviews.length} resena(s): ${pendingCount} pendiente(s), ${approvedCount} aprobada(s), ${rejectedCount} rechazada(s).`;
+
+            if (!reviews.length) {
+                list.innerHTML = '<p class="admin-empty">Todavia no hay resenas registradas.</p>';
+                return;
+            }
+
+            list.innerHTML = reviews.map((review) => {
+                const status = review.status || 'pending';
+                return `
+                <article class="admin-request admin-review-card" data-id="${review._id}">
+                    <div class="admin-request-top">
+                        <div>
+                            <h3>${escapeHtml(review.name || 'Cliente')}</h3>
+                            <p>${renderStars(review.rating)}</p>
+                        </div>
+                        <div class="admin-request-meta">
+                            <span class="admin-status ${status}">${status === 'approved' ? 'Aprobada' : status === 'rejected' ? 'Rechazada' : 'Pendiente'}</span>
+                            <span>${formatDate(review.createdAt)}</span>
+                        </div>
+                    </div>
+                    <div class="admin-review-edit">
+                        <input class="review-name" type="text" value="${escapeHtml(review.name || '')}" placeholder="Nombre">
+                        <input class="review-rating" type="number" min="1" max="5" value="${Number(review.rating || 5)}" placeholder="Calificacion">
+                        <input class="review-event" type="text" value="${escapeHtml(review.eventType || '')}" placeholder="Tipo de evento">
+                        <textarea class="review-message" placeholder="Resena">${escapeHtml(review.message || '')}</textarea>
+                        <textarea class="review-note" placeholder="Nota interna del administrador">${escapeHtml(review.adminNote || '')}</textarea>
+                    </div>
+                    <div class="admin-actions">
+                        <button type="button" class="admin-save-review">Guardar cambios</button>
+                        <button type="button" class="admin-approve-review">Aprobar</button>
+                        <button type="button" class="admin-reject-review">Rechazar</button>
+                        <button type="button" class="admin-delete-button admin-delete-review">Eliminar</button>
                     </div>
                 </article>
             `;
@@ -146,7 +225,7 @@
         }
 
         async function deleteContact(id) {
-            const confirmed = confirm('¿Seguro que quieres eliminar esta solicitud? Esta acción no se puede deshacer.');
+            const confirmed = confirm('Seguro que quieres eliminar esta solicitud? Esta accion no se puede deshacer.');
 
             if (!confirmed) return;
 
@@ -170,6 +249,78 @@
                 await loadContacts();
             } catch (error) {
                 showAdminMessage('No se pudo conectar con el servidor.', 'error');
+            }
+        }
+
+        function getReviewPayload(card, status) {
+            const payload = {
+                name: card.querySelector('.review-name').value,
+                rating: Number(card.querySelector('.review-rating').value),
+                eventType: card.querySelector('.review-event').value,
+                message: card.querySelector('.review-message').value,
+                adminNote: card.querySelector('.review-note').value
+            };
+
+            if (status) {
+                payload.status = status;
+            }
+
+            return payload;
+        }
+
+        async function updateReview(id, payload) {
+            const session = getSession();
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/reviews/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showReviewAdminMessage(data.message || 'No se pudo actualizar la resena.', 'error');
+                    return;
+                }
+
+                showReviewAdminMessage('Resena actualizada correctamente.', 'success');
+                await loadAdminReviews();
+            } catch (error) {
+                showReviewAdminMessage('No se pudo conectar con el servidor.', 'error');
+            }
+        }
+
+        async function deleteReview(id) {
+            const confirmed = confirm('Seguro que quieres eliminar esta resena? Esta accion no se puede deshacer.');
+
+            if (!confirmed) return;
+
+            const session = getSession();
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/reviews/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${session.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showReviewAdminMessage(data.message || 'No se pudo eliminar la resena.', 'error');
+                    return;
+                }
+
+                showReviewAdminMessage('Resena eliminada correctamente.', 'success');
+                await loadAdminReviews();
+            } catch (error) {
+                showReviewAdminMessage('No se pudo conectar con el servidor.', 'error');
             }
         }
 
@@ -202,9 +353,40 @@
             }
         }
 
+        async function loadAdminReviews() {
+            const session = getSession();
+
+            if (!session || !session.token || session.role !== 'admin') {
+                window.location.href = 'login.html?redirect=admin.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL + '/api/admin/reviews', {
+                    headers: {
+                        'Authorization': `Bearer ${session.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showReviewAdminMessage(data.message || 'No se pudieron cargar las resenas.', 'error');
+                    return;
+                }
+
+                showReviewAdminMessage('', 'form-message');
+                renderAdminReviews(data.reviews || []);
+            } catch (error) {
+                showReviewAdminMessage('No se pudo conectar con el servidor.', 'error');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('year').textContent = new Date().getFullYear();
             document.getElementById('refresh-admin').addEventListener('click', loadContacts);
+            document.getElementById('refresh-reviews').addEventListener('click', loadAdminReviews);
+
             document.getElementById('admin-list').addEventListener('click', (event) => {
                 const completeButton = event.target.closest('.admin-complete-button');
                 const deleteButton = event.target.closest('.admin-delete-button');
@@ -218,7 +400,30 @@
                     deleteContact(deleteButton.dataset.id);
                 }
             });
+
+            document.getElementById('admin-reviews-list').addEventListener('click', (event) => {
+                const card = event.target.closest('.admin-review-card');
+                if (!card) return;
+
+                if (event.target.closest('.admin-save-review')) {
+                    updateReview(card.dataset.id, getReviewPayload(card));
+                }
+
+                if (event.target.closest('.admin-approve-review')) {
+                    updateReview(card.dataset.id, getReviewPayload(card, 'approved'));
+                }
+
+                if (event.target.closest('.admin-reject-review')) {
+                    updateReview(card.dataset.id, getReviewPayload(card, 'rejected'));
+                }
+
+                if (event.target.closest('.admin-delete-review')) {
+                    deleteReview(card.dataset.id);
+                }
+            });
+
             loadContacts();
+            loadAdminReviews();
         });
     </script>
 </body>

@@ -156,8 +156,20 @@ const contactSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }, { strict: true });
 
+const reviewSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    rating: { type: Number, min: 1, max: 5, default: 5 },
+    message: { type: String, required: true },
+    eventType: String,
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    adminNote: String,
+    approvedAt: Date,
+    createdAt: { type: Date, default: Date.now }
+}, { strict: true });
+
 const User = mongoose.model('User', userSchema);
 const Contact = mongoose.model('Contact', contactSchema);
+const Review = mongoose.model('Review', reviewSchema);
 
 /*
     Admin: crea el usuario administrador automáticamente si no existe.
@@ -386,6 +398,48 @@ app.post('/api/contact', verifyToken, async (req, res) => {
     }
 });
 
+app.get('/api/reviews', async (req, res) => {
+    try {
+        const reviews = await Review.find({ status: 'approved' })
+            .sort({ createdAt: -1 })
+            .limit(30)
+            .lean();
+
+        res.json({ reviews });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener reseñas.' });
+    }
+});
+
+app.post('/api/reviews', async (req, res) => {
+    try {
+        const { name, rating, message, eventType } = req.body;
+        const numericRating = Number(rating);
+
+        if (
+            !isValidText(name, 80) ||
+            !Number.isFinite(numericRating) ||
+            numericRating < 1 ||
+            numericRating > 5 ||
+            !isValidText(message, 700)
+        ) {
+            return res.status(400).json({ message: 'Datos de reseña inválidos o incompletos.' });
+        }
+
+        await Review.create({
+            name: name.trim(),
+            rating: numericRating,
+            message: message.trim(),
+            eventType: typeof eventType === 'string' ? eventType.trim() : '',
+            status: 'pending'
+        });
+
+        res.json({ message: 'Reseña enviada. Será visible cuando el administrador la apruebe.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al guardar la reseña.' });
+    }
+});
+
 /*
     Admin: devuelve las solicitudes guardadas.
     Solo un usuario con role "admin" puede ver esta información.
@@ -400,6 +454,84 @@ app.get('/api/admin/contacts', verifyToken, verifyAdmin, async (req, res) => {
         res.json({ contacts });
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener solicitudes.' });
+    }
+});
+
+app.get('/api/admin/reviews', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const reviews = await Review.find({})
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .lean();
+
+        res.json({ reviews });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener reseñas.' });
+    }
+});
+
+app.patch('/api/admin/reviews/:id', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const { name, rating, message, eventType, status, adminNote } = req.body;
+        const update = {};
+
+        if (name !== undefined) {
+            if (!isValidText(name, 80)) return res.status(400).json({ message: 'Nombre no válido.' });
+            update.name = name.trim();
+        }
+
+        if (rating !== undefined) {
+            const numericRating = Number(rating);
+            if (!Number.isFinite(numericRating) || numericRating < 1 || numericRating > 5) {
+                return res.status(400).json({ message: 'Calificación no válida.' });
+            }
+            update.rating = numericRating;
+        }
+
+        if (message !== undefined) {
+            if (!isValidText(message, 700)) return res.status(400).json({ message: 'Reseña no válida.' });
+            update.message = message.trim();
+        }
+
+        if (eventType !== undefined) {
+            update.eventType = typeof eventType === 'string' ? eventType.trim() : '';
+        }
+
+        if (adminNote !== undefined) {
+            update.adminNote = typeof adminNote === 'string' ? adminNote.trim() : '';
+        }
+
+        if (status !== undefined) {
+            if (!['pending', 'approved', 'rejected'].includes(status)) {
+                return res.status(400).json({ message: 'Estado de reseña no válido.' });
+            }
+            update.status = status;
+            update.approvedAt = status === 'approved' ? new Date() : null;
+        }
+
+        const review = await Review.findByIdAndUpdate(req.params.id, update, { new: true }).lean();
+
+        if (!review) {
+            return res.status(404).json({ message: 'Reseña no encontrada.' });
+        }
+
+        res.json({ review });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar reseña.' });
+    }
+});
+
+app.delete('/api/admin/reviews/:id', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const deletedReview = await Review.findByIdAndDelete(req.params.id).lean();
+
+        if (!deletedReview) {
+            return res.status(404).json({ message: 'Reseña no encontrada.' });
+        }
+
+        res.json({ message: 'Reseña eliminada correctamente.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar reseña.' });
     }
 });
 

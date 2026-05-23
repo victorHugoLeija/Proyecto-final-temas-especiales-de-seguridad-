@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reseñas - DJ Gustavo</title>
+    <title>Reseñas | DJ Gustavo</title>
+    <meta name="description" content="Lee reseñas de clientes y comparte tu experiencia con DJ Gustavo.">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,33 +21,163 @@
             </ul>
         </nav>
     </header>
+
     <main>
         <section id="cabinas-hero">
             <h1>Reseñas reales de nuestros clientes</h1>
-            <p>Lee experiencias de parejas, empresas y familias que eligieron nuestra producción musical.</p>
+            <p>Lee experiencias de familias, parejas y empresas que eligieron nuestra producción musical.</p>
         </section>
-        <section id="review-list" class="contract-form">
-            <article>
-                <h2>"Excelente ambiente y muy buena comunicación"</h2>
-                <p>"DJ Gustavo hizo nuestra boda muy especial. La música, las luces y la coordinación fueron perfectas."</p>
-            </article>
-            <article>
-                <h2>"Todo super profesional, desde el primer contacto"</h2>
-                <p>"Contratamos el paquete completo para una fiesta de 120 personas y todos quedaron encantados."</p>
-            </article>
-            <article>
-                <h2>"Recomendado para eventos en CDMX"</h2>
-                <p>"Buen precio, buena producción y muy amable el equipo. Se adaptaron al espacio y la energía fue increíble."</p>
-            </article>
+
+        <section id="review-list" class="reviews-section">
+            <div class="review-header">
+                <div>
+                    <h2>Experiencias aprobadas</h2>
+                    <p>Las reseñas nuevas se revisan antes de publicarse para mantener la calidad y autenticidad del sitio.</p>
+                </div>
+            </div>
+            <div id="reviews-container" class="review-grid"></div>
+        </section>
+
+        <section id="review-form-section" class="contract-form">
+            <h2>Agregar una reseña</h2>
+            <div id="review-message" class="form-message"></div>
+            <form id="review-form">
+                <input type="text" name="name" placeholder="Tu nombre" required>
+                <select name="rating" required>
+                    <option value="5">5 estrellas</option>
+                    <option value="4">4 estrellas</option>
+                    <option value="3">3 estrellas</option>
+                    <option value="2">2 estrellas</option>
+                    <option value="1">1 estrella</option>
+                </select>
+                <input type="text" name="eventType" placeholder="Tipo de evento (boda, cumpleaños, corporativo)">
+                <textarea name="message" placeholder="Cuéntanos cómo fue tu experiencia" required></textarea>
+                <button type="submit">Enviar reseña</button>
+            </form>
         </section>
     </main>
+
     <footer>
         <p>&copy; <span id="year"></span> DJ GUSTAVO. Todos los derechos reservados.</p>
     </footer>
     <script src="auth.js"></script>
     <script>
+        const API_URL = '';
+
+        function stars(rating) {
+            const value = Math.max(1, Math.min(5, Number(rating) || 5));
+            return '&#9733;'.repeat(value);
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showReviewMessage(text, type = 'success') {
+            const messageBox = document.getElementById('review-message');
+            messageBox.textContent = text;
+            messageBox.className = `form-message ${type}`;
+            setTimeout(() => {
+                messageBox.textContent = '';
+                messageBox.className = 'form-message';
+            }, 5000);
+        }
+
+        function renderReviews(reviews) {
+            const container = document.getElementById('reviews-container');
+            const defaults = [
+                {
+                    name: 'Cliente de boda',
+                    rating: 5,
+                    eventType: 'Boda',
+                    message: 'La música, las luces y la coordinación hicieron que la pista se mantuviera llena toda la noche.'
+                },
+                {
+                    name: 'Evento familiar',
+                    rating: 5,
+                    eventType: 'Cumpleaños',
+                    message: 'Muy buena comunicación y montaje puntual. El ambiente fue exactamente lo que buscábamos.'
+                },
+                {
+                    name: 'Cliente corporativo',
+                    rating: 5,
+                    eventType: 'Evento empresarial',
+                    message: 'Equipo profesional, buena presentación y selección musical adaptable al público.'
+                }
+            ];
+            const list = reviews.length ? reviews : defaults;
+
+            container.innerHTML = list.map((review) => `
+                <article class="review-card">
+                    <div class="review-stars">${stars(review.rating)}</div>
+                    <h3>${escapeHtml(review.name)}</h3>
+                    <p class="review-event">${escapeHtml(review.eventType || 'Evento social')}</p>
+                    <p>"${escapeHtml(review.message)}"</p>
+                </article>
+            `).join('');
+        }
+
+        async function loadReviews() {
+            try {
+                const response = await fetch(API_URL + '/api/reviews');
+                const data = await response.json();
+                renderReviews(data.reviews || []);
+            } catch (error) {
+                renderReviews([]);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('year').textContent = new Date().getFullYear();
+            loadReviews();
+
+            document.getElementById('review-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const form = event.currentTarget;
+                const submitButton = form.querySelector('button[type="submit"]');
+                const formData = new FormData(form);
+                const payload = {
+                    name: formData.get('name').toString().trim(),
+                    rating: Number(formData.get('rating')),
+                    eventType: formData.get('eventType').toString().trim(),
+                    message: formData.get('message').toString().trim()
+                };
+
+                if (!payload.name || !payload.message) {
+                    showReviewMessage('Completa tu nombre y reseña.', 'error');
+                    return;
+                }
+
+                try {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Enviando...';
+
+                    const response = await fetch(API_URL + '/api/reviews', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        showReviewMessage(data.message || 'No se pudo enviar la reseña.', 'error');
+                        return;
+                    }
+
+                    showReviewMessage(data.message, 'success');
+                    form.reset();
+                } catch (error) {
+                    showReviewMessage('No se pudo conectar con el servidor.', 'error');
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Enviar reseña';
+                }
+            });
         });
     </script>
 </body>
